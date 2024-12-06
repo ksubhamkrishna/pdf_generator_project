@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context 
+        https://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc 
+        https://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/tx 
+        https://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!-- Enable annotation-driven MVC -->
+    <mvc:annotation-driven />
+
+    <!-- Enable component scanning for your base package -->
+    <context:component-scan base-package="com.generation.pdf" />
+
+    <!--  Define Spring MVC view resolver -->
+    <!-- Uncomment and adjust if you use JSP views
+    
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/view/" />
+        <property name="suffix" value=".jsp" />
+    </bean> -->
+   
+
+    <!-- Step 1: Define DataSource (C3P0 connection pool) -->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+        <property name="driverClass" value="com.mysql.cj.jdbc.Driver" />
+        <property name="jdbcUrl" value="jdbc:mysql://localhost:3306/transactions_project?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC" />
+        <property name="user" value="root" />
+        <property name="password" value="password" />
+        
+        <!-- Connection pool properties -->
+        <property name="minPoolSize" value="5" />
+        <property name="maxPoolSize" value="20" />
+        <property name="maxIdleTime" value="300" />
+    </bean>
+
+    <!-- Step 2: Setup Hibernate SessionFactory -->
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="packagesToScan" value="com.generation.pdf.model" />
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+                <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.format_sql">true</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop> <!-- Adjust this value as needed -->
+            </props>
+        </property>
+    </bean>
+
+    <!-- Step 3: Setup Hibernate Transaction Manager -->
+    <bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory" />
+    </bean>
+
+    <!-- Step 4: Enable @Transactional annotations -->
+    <tx:annotation-driven transaction-manager="transactionManager" />
+</beans>
