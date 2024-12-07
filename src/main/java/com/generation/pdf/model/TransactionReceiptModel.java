@@ -28,8 +28,8 @@ public class TransactionReceiptModel {
 	@Column(name = "Description", length = 10000)
 	private String description;
 
-	@Column(name = "Transfer_Account", precision = 20, scale = 2)
-	private BigDecimal transferAccount;
+	@Column(name = "Transfer_Amount", precision = 20, scale = 2)
+	private BigDecimal transferAmount;
 
 	@Column(name = "Credit_Type", length = 6)
 	private String creditType;
@@ -84,12 +84,12 @@ public class TransactionReceiptModel {
 		this.description = description;
 	}
 
-	public BigDecimal getTransferAccount() {
-		return transferAccount;
+	public BigDecimal getTransferAmount() {
+		return transferAmount;
 	}
 
-	public void setTransferAccount(BigDecimal transferAccount) {
-		this.transferAccount = transferAccount;
+	public void setTransferAmount(BigDecimal transferAmount) {
+		this.transferAmount = transferAmount;
 	}
 
 	public String getCreditType() {
@@ -107,13 +107,13 @@ public class TransactionReceiptModel {
 	}
 
 	public TransactionReceiptModel(Long payorAccount, Integer assignedId, Long assignedTransferId, String description,
-			BigDecimal transferAccount, String creditType) {
+			BigDecimal transferAmount, String creditType) {
 		super();
 		this.payorAccount = payorAccount;
 		this.assignedId = assignedId;
 		this.assignedTransferId = assignedTransferId;
 		this.description = description;
-		this.transferAccount = transferAccount;
+		this.transferAmount = transferAmount;
 		this.creditType = creditType;
 	}
 	
