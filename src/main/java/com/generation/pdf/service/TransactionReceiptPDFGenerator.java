@@ -39,7 +39,7 @@ public class TransactionReceiptPDFGenerator {
             // Transfer Summary Header
             contentStream.beginText();
             contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
-            contentStream.newLineAtOffset(25, 710);
+            contentStream.newLineAtOffset(50, 710);
             contentStream.showText("Transfer Summary");
             contentStream.endText();
 		    
@@ -48,14 +48,14 @@ public class TransactionReceiptPDFGenerator {
             drawTableHeader(contentStream, summaryHeaders, 690, 550);
             drawTableRow(contentStream, new String[] { "Credit", String.valueOf(credittransactionCount), String.valueOf(creditTotal) }, 670, 550);
             drawTableRow(contentStream, new String[] { "Debit", String.valueOf(debittransactionCount), String.valueOf(debitTotal) }, 650, 550);
-            drawTableRow(contentStream, new String[] { "Total", String.valueOf(transactionCount), String.valueOf(debitTotal) }, 630, 550);
+            drawTableRow(contentStream, new String[] { "Total", String.valueOf(transactionCount), String.valueOf((creditTotal.subtract(debitTotal))) }, 630, 550);
             drawTableRow(contentStream, new String[] { "Net Total", String.valueOf(transactionCount), String.valueOf((creditTotal.subtract(debitTotal))) }, 610, 550);
 
             // Table for Transaction Details
             String[] headers = { "Date", "Payor Account", "Assigned ID", "Description", "Transfer Amount", "Credit Type" };
             drawTableHeader(contentStream, headers, 590, 500);
 
-            int yPosition = 600; // Start position for data rows
+            int yPosition = 570; // Start position for data rows
 
             // Iterate through each transaction and write data into the PDF
             for (TransactionReceiptModel transaction : transactions) {
@@ -64,7 +64,7 @@ public class TransactionReceiptPDFGenerator {
                     page = new PDPage(PDRectangle.A4);
                     document.addPage(page);
                     contentStream = new PDPageContentStream(document, page);
-                    yPosition = 750;
+                    yPosition = 510;
                     drawTableHeader(contentStream, headers, yPosition, 500);
                     yPosition -= 20;
                 }
