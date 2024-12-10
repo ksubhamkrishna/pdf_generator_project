@@ -46,7 +46,7 @@ public class TransactionReceiptPDFGenerator {
             drawTableHeader(contentStream, summaryHeaders, 690, 550);
             drawTableRow(contentStream, new String[] { "Credit", String.valueOf(creditTransactionCount), String.valueOf(creditTotal) }, 670, 550);
             drawTableRow(contentStream, new String[] { "Debit", String.valueOf(debitTransactionCount), String.valueOf(debitTotal) }, 650, 550);
-            drawTableRow(contentStream, new String[] { "Total", String.valueOf(transactionCount), String.valueOf((creditTotal.add(debitTotal))) }, 630, 550);
+            drawTableRow(contentStream, new String[] { "Total", String.valueOf(transactionCount), String.valueOf((creditTotal.subtract(debitTotal)))}, 630, 550);
             drawTableRow(contentStream, new String[] { "Net Total", String.valueOf(transactionCount), String.valueOf((creditTotal.subtract(debitTotal))) }, 610, 550);
 
             // Space between tables
