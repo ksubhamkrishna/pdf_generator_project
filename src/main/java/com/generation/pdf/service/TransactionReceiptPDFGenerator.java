@@ -3,8 +3,6 @@ package com.generation.pdf.service;
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.springframework.stereotype.Component;
-import com.generation.pdf.dao.PDFGenerationDao;
 import com.generation.pdf.model.TransactionReceiptModel;
 import java.awt.*;
 import java.io.IOException;
@@ -15,12 +13,12 @@ import java.util.List;
 
 public class TransactionReceiptPDFGenerator {
 
-    public void generatePdf(String filepath, List<TransactionReceiptModel> transactions, Long transactionCount,Long credittransactionCount, Long debittransactionCount, BigDecimal creditTotal, BigDecimal debitTotal) {
+    public void generatePdf(String filepath, List<TransactionReceiptModel> transactions, Long transactionCount, Long creditTransactionCount, Long debitTransactionCount, BigDecimal creditTotal, BigDecimal debitTotal) {
         try (PDDocument document = new PDDocument()) {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
 
-            PDPageContentStream contentStream = new PDPageContentStream(document, page);	
+            PDPageContentStream contentStream = new PDPageContentStream(document, page);
 
             // Title
             contentStream.beginText();
@@ -35,29 +33,30 @@ public class TransactionReceiptPDFGenerator {
             contentStream.newLineAtOffset(200, 730);
             contentStream.showText("Generated on: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date()));
             contentStream.endText();
-			
+
             // Transfer Summary Header
             contentStream.beginText();
             contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
             contentStream.newLineAtOffset(50, 710);
             contentStream.showText("Transfer Summary");
             contentStream.endText();
-		    
-            // Transfer Summary Table (Count and Transfer Amount for Credit/Debit)
+
+            // Transfer Summary Table
             String[] summaryHeaders = { " ", "Count", "Transfer Amount" };
             drawTableHeader(contentStream, summaryHeaders, 690, 550);
-            drawTableRow(contentStream, new String[] { "Credit", String.valueOf(credittransactionCount), String.valueOf(creditTotal) }, 670, 550);
-            drawTableRow(contentStream, new String[] { "Debit", String.valueOf(debittransactionCount), String.valueOf(debitTotal) }, 650, 550);
-            drawTableRow(contentStream, new String[] { "Total", String.valueOf(transactionCount), String.valueOf((creditTotal.subtract(debitTotal))) }, 630, 550);
+            drawTableRow(contentStream, new String[] { "Credit", String.valueOf(creditTransactionCount), String.valueOf(creditTotal) }, 670, 550);
+            drawTableRow(contentStream, new String[] { "Debit", String.valueOf(debitTransactionCount), String.valueOf(debitTotal) }, 650, 550);
+            drawTableRow(contentStream, new String[] { "Total", String.valueOf(transactionCount), String.valueOf((creditTotal.add(debitTotal))) }, 630, 550);
             drawTableRow(contentStream, new String[] { "Net Total", String.valueOf(transactionCount), String.valueOf((creditTotal.subtract(debitTotal))) }, 610, 550);
 
-            // Table for Transaction Details
+            // Space between tables
+            int secondTableStartY = 580;
+
+            // Transaction Details Table
             String[] headers = { "Date", "Payor Account", "Assigned ID", "Description", "Transfer Amount", "Credit Type" };
-            drawTableHeader(contentStream, headers, 590, 500);
+            drawTableHeader(contentStream, headers, secondTableStartY, 500);
 
-            int yPosition = 570; // Start position for data rows
-
-            // Iterate through each transaction and write data into the PDF
+            int yPosition = secondTableStartY - 20; // Start position for data rows
             for (TransactionReceiptModel transaction : transactions) {
                 if (yPosition < 50) { // Add a new page if space is insufficient
                     contentStream.close();
@@ -70,11 +69,14 @@ public class TransactionReceiptPDFGenerator {
                 }
 
                 drawTableRow(contentStream,
-                        new String[] { formatDate(transaction.getDate()), String.valueOf(transaction.getPayorAccount()),
+                        new String[] {
+                                formatDate(transaction.getDate()),
+                                String.valueOf(transaction.getPayorAccount()),
                                 transaction.getAssignedId() != null ? transaction.getAssignedId().toString() : "N/A",
                                 transaction.getDescription() != null ? transaction.getDescription() : "N/A",
                                 transaction.getTransferAmount() != null ? transaction.getTransferAmount().toString() : "N/A",
-                                transaction.getCreditType() != null ? transaction.getCreditType() : "N/A" },
+                                transaction.getCreditType() != null ? transaction.getCreditType() : "N/A"
+                        },
                         yPosition, 500);
 
                 yPosition -= 20;
@@ -93,7 +95,7 @@ public class TransactionReceiptPDFGenerator {
     private void drawTableHeader(PDPageContentStream contentStream, String[] headers, int y, int tableWidth)
             throws IOException {
         int xStart = 50; // Left margin
-        int colWidth = tableWidth / headers.length; // Equal column width
+        int colWidth = tableWidth / headers.length;
 
         // Background for header row
         contentStream.setNonStrokingColor(Color.LIGHT_GRAY);
@@ -105,26 +107,52 @@ public class TransactionReceiptPDFGenerator {
         contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
         for (int i = 0; i < headers.length; i++) {
             contentStream.beginText();
-            contentStream.newLineAtOffset(xStart + (colWidth * i) + 5, y - 15); // Align text to columns
+            contentStream.newLineAtOffset(xStart + (colWidth * i) + 5, y - 15);
             contentStream.showText(headers[i]);
             contentStream.endText();
         }
+
+        // Draw vertical lines for columns
+        for (int i = 0; i <= headers.length; i++) {
+            int xPosition = xStart + (colWidth * i);
+            contentStream.moveTo(xPosition, y - 20);
+            contentStream.lineTo(xPosition, y);
+            contentStream.stroke();
+        }
+
+        // Draw horizontal line below header
+        contentStream.moveTo(xStart, y - 20);
+        contentStream.lineTo(xStart + tableWidth, y - 20);
+        contentStream.stroke();
     }
 
     // Method to draw table row
     private void drawTableRow(PDPageContentStream contentStream, String[] rowData, int y, int tableWidth)
             throws IOException {
-        int xStart = 50; // Left margin
-        int colWidth = tableWidth / rowData.length; // Equal column width
+        int xStart = 50;
+        int colWidth = tableWidth / rowData.length;
 
         // Draw data for each column
         contentStream.setFont(PDType1Font.HELVETICA, 10);
         for (int i = 0; i < rowData.length; i++) {
             contentStream.beginText();
-            contentStream.newLineAtOffset(xStart + (colWidth * i) + 5, y - 15); // Align text to column
+            contentStream.newLineAtOffset(xStart + (colWidth * i) + 5, y - 15);
             contentStream.showText(rowData[i] != null ? rowData[i] : "N/A");
             contentStream.endText();
         }
+
+        // Draw vertical lines for columns
+        for (int i = 0; i <= rowData.length; i++) {
+            int xPosition = xStart + (colWidth * i);
+            contentStream.moveTo(xPosition, y);
+            contentStream.lineTo(xPosition, y - 20);
+            contentStream.stroke();
+        }
+
+        // Draw horizontal line below the row
+        contentStream.moveTo(xStart, y - 20);
+        contentStream.lineTo(xStart + tableWidth, y - 20);
+        contentStream.stroke();
     }
 
     // Method to format the date
